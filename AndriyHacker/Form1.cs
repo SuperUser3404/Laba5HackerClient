@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 
-namespace AndriyHacker
+namespace HackerClient
 {
     public partial class Form1 : Form
     {
@@ -28,46 +28,6 @@ namespace AndriyHacker
             tcpClient.Connect("127.0.0.1", 8888);
             stream = tcpClient.GetStream();
             label4.Text = $"Адреса клієнта: 127.0.0.1 : {((IPEndPoint)tcpClient.Client.RemoteEndPoint).Port}";
-        }
-
-        private void checkBox1_CheckedChanged(object sender, EventArgs e)
-        {
-            if (checkBox1.Checked)
-            {
-                if (textBox1.Text == string.Empty)
-                {
-                    textBox1.BackColor = Color.Red;
-                    textBox1.Text = "Поле для логіну порожнє";
-                }
-                else
-                {
-                    if (openFileDialog1.ShowDialog() == DialogResult.OK)
-                    {
-                        List<string> passwords = GetPasswordsFromFile(openFileDialog1.FileName);
-                        textBox2.Text = AttackByDictionary(passwords, textBox1.Text);
-                        label2.Text = "Broken password:";
-                    }
-                }
-            }
-            checkBox1.Checked = false;
-        }
-
-        List<string> GetPasswordsFromFile(string filepath)
-        {
-            return File.ReadAllLines(filepath).ToList();
-        }
-
-        string AttackByDictionary(List<string> passwords, string username)
-        {
-            for (int i = 0; i < passwords.Count; i++)
-            {
-                if (Auth(username, passwords[i]) == "Success")
-                {
-                    return passwords[i];
-                }
-            }
-
-            return "Пароль не знайдено";
         }
 
         string Auth(string username, string password)
@@ -84,6 +44,29 @@ namespace AndriyHacker
 
             string result = Encoding.UTF8.GetString(buffer.ToArray());
             return result;
+        }
+
+        string AttackByFormation(string username, List<string> formations)
+        {
+            for (int i = 0; i < formations.Count; i++)
+            {
+                string temp = formations[i];
+                for (int j = 0; j < formations.Count; j++)
+                {
+                    if (i == j)
+                    {
+                        continue;
+                    }
+
+                    temp += formations[j];
+
+                    if (Auth(username, temp) == "Success")
+                    {
+                        return temp;
+                    }
+                }
+            }
+            return "Password is not found";
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
@@ -110,6 +93,21 @@ namespace AndriyHacker
                 textBox1.Text = string.Empty;
             }
             textBox1.BackColor = Color.White;
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            if (textBox1.Text == string.Empty)
+            {
+                textBox1.BackColor = Color.Red;
+                textBox1.Text = "Поле для логіну порожнє";
+            }
+            else
+            {
+                List<string> formations = new List<string>() { "pa", "ss", "wo", "rd" };
+                textBox2.Text = AttackByFormation(textBox1.Text , formations);
+                label2.Text = "Broken password:";
+            }
         }
     }
 }
